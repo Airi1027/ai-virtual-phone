@@ -629,8 +629,20 @@ export function parseAIResponse(rawText: string, previousState: StateValue[]): P
     const status = extractBracketBlock(actionCleaned, "状态栏");
     const mono = extractBracketBlock(status.cleaned, "内心");
 
+    // 2.05. Extract and strip [emotion:xxx] for Minimax TTS
+    let emotionCleaned = mono.cleaned;
+    const emotionMatch = emotionCleaned.match(/\[emotion[：:](\w+)\]/i);
+    if (emotionMatch) {
+        const rawEmotion = emotionMatch[1].toLowerCase();
+        const validEmotions = new Set(["happy", "sad", "angry", "fearful", "disgusted", "surprised", "neutral", "calm", "fluent"]);
+        if (validEmotions.has(rawEmotion) && typeof window !== "undefined") {
+            (window as Record<string, unknown>).__ttsEmotionHint = rawEmotion;
+        }
+        emotionCleaned = emotionCleaned.replace(/\[emotion[：:]\w+\]\s*/gi, "");
+    }
+
     // 2.1. Collapse residual blank lines left by tag extraction
-    const postCleaned = mono.cleaned.replace(/\n{3,}/g, "\n\n").trim();
+    const postCleaned = emotionCleaned.replace(/\n{3,}/g, "\n\n").trim();
 
     // 2.5. Merge [引用:...] with following reply text even if separated by newlines
     const mergedText = postCleaned.replace(/(\[引用[：:][^\]]+\])\s*\n+\s*/g, "$1");
