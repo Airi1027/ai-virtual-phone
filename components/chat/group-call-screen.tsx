@@ -271,7 +271,14 @@ export function GroupCallScreen({ type, session, characters, onEnd, initiator = 
                 const voiceConfig = resolveVoiceConfig(r.characterId);
                 if (voiceConfig && speechText.trim()) {
                     try {
-                        const audioBlob = await synthesizeSpeech(speechText, voiceConfig);
+                        // AI 情绪标注（inline 模式）：读取 parseAIResponse 遗留的情绪标记
+                        let callEmotion: string | undefined;
+                        if (voiceConfig.aiEmotionMode === "inline" && voiceConfig.provider === "Minimax") {
+                            const w = window as Record<string, unknown>;
+                            callEmotion = w.__ttsEmotionHint as string | undefined;
+                            if (callEmotion) delete w.__ttsEmotionHint;
+                        }
+                        const audioBlob = await synthesizeSpeech(speechText, voiceConfig, callEmotion ? { emotion: callEmotion } : undefined);
                         if (stateRef.current === "ENDED") return;
                         if (audioBlob) {
                             const { promise, abort } = playCallAudio(audioBlob);
