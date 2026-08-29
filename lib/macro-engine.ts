@@ -51,6 +51,7 @@ export class MacroEngine {
     groupRoster: string = "";
     customAppRichMediaDirectives: string = "";
     chatBilingualInstruction: string = "";
+    ttsEmotionInstruction: string = "";
     statusRegionSection: string = "";
     statusRegionExampleLine: string = "";
     statusRegionComposition: string = "";
@@ -183,6 +184,7 @@ export class MacroEngine {
         if (body === "groupRoster") return this.groupRoster || "\x00TRIM\x00";
         if (body === "customAppRichMediaDirectives" || body === "customAppChatCapabilities") return this.customAppRichMediaDirectives || "\x00TRIM\x00";
         if (body === "chatBilingualInstruction") return this.chatBilingualInstruction || "\x00TRIM\x00";
+        if (body === "ttsEmotionInstruction") return this.ttsEmotionInstruction || "\x00TRIM\x00";
         // 状态区宏：空值直返空串而非 TRIM——TRIM 会吞掉相邻换行把上下行粘死，off 挡留空行更安全
         if (body === "statusRegionSection") return this.statusRegionSection;
         if (body === "statusRegionExampleLine") return this.statusRegionExampleLine;
