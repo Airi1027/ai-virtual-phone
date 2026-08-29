@@ -2210,7 +2210,16 @@ function synthesizeVoiceForMessage(msgId: string, characterId: string, speechTex
         const { resolveVoiceConfig, synthesizeSpeech } = await import("@/lib/tts-service");
         const vc = resolveVoiceConfig(characterId);
         if (!vc) throw new Error("未绑定语音配置");
-        const blob = await synthesizeSpeech(speechText, vc);
+
+        // AI 情绪标注（inline 模式）：读取 parseAIResponse 遗留的情绪标记
+        let callEmotion: string | undefined;
+        if (vc.aiEmotionMode === "inline" && vc.provider === "Minimax") {
+            const w = window as Record<string, unknown>;
+            callEmotion = w.__ttsEmotionHint as string | undefined;
+            if (callEmotion) delete w.__ttsEmotionHint;
+        }
+
+        const blob = await synthesizeSpeech(speechText, vc, callEmotion ? { emotion: callEmotion } : undefined);
         if (!blob) throw new Error("合成失败");
         const dataUrl = await new Promise<string>((resolve, reject) => {
             const reader = new FileReader();
