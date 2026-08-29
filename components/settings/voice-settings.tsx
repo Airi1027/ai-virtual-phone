@@ -6,6 +6,7 @@ import { SettingsContext } from "../phone-settings-app";
 import type { VoiceApiConfig } from "@/lib/settings-types";
 import { loadVoiceConfigs, saveVoiceConfigs } from "@/lib/settings-storage";
 import { synthesizeSpeech } from "@/lib/tts-service";
+import { DEFAULT_TTS_EMOTION_PROMPT } from "@/lib/tts-emotion-defaults";
 import { ConfirmDialog } from "@/components/ui/modal";
 import { Toggle, Input } from "@/components/ui/form";
 import { Alert } from "@/components/ui/feedback";
@@ -796,6 +797,46 @@ export function VoiceSettings() {
                                                         ))}
                                                     </select>
                                                 </div>
+                                                <div className="flex flex-col gap-1 mt-2">
+                                                    <label className="menu-desc ml-1">AI 情绪与语气标注</label>
+                                                    <select
+                                                        value={config.aiEmotionMode || "off"}
+                                                        onChange={(e) => updateConfig(config.id, { aiEmotionMode: e.target.value as "off" | "inline" })}
+                                                        className="ui-select"
+                                                    >
+                                                        <option value="off">关闭（引擎自动匹配）</option>
+                                                        <option value="inline">随回复输出（零额外延迟）</option>
+                                                    </select>
+                                                    <span className="menu-desc ml-1">
+                                                        开启后可在预设（例如「聊天输出格式与富媒体」、「语音通话输出格式」或「视频通话输出格式」的尾部）中引用 <code className="px-1 py-0.5 bg-gray-100 dark:bg-gray-800 rounded font-mono text-xs">{"{{ttsEmotionInstruction}}"}</code> 变量。模型会在回复时顺带标注情绪（仅 Minimax 适用），由 TTS 引擎直接识别。
+                                                    </span>
+                                                </div>
+                                                {config.aiEmotionMode === "inline" && (
+                                                    <div className="flex flex-col gap-1.5 mt-1 p-2.5 bg-gray-50 dark:bg-gray-800/40 rounded-lg border border-gray-200/60 dark:border-gray-700/60">
+                                                        <div className="flex items-center justify-between">
+                                                            <label className="menu-desc text-xs font-medium">情绪与语气标注提示词 ({"{{ttsEmotionInstruction}}"})</label>
+                                                            {config.inlineEmotionPrompt !== undefined && config.inlineEmotionPrompt !== "" && (
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => updateConfig(config.id, { inlineEmotionPrompt: undefined })}
+                                                                    className="text-xs text-blue-500 hover:underline"
+                                                                >
+                                                                    恢复默认
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                        <textarea
+                                                            value={config.inlineEmotionPrompt !== undefined ? config.inlineEmotionPrompt : DEFAULT_TTS_EMOTION_PROMPT}
+                                                            onChange={(e) => updateConfig(config.id, { inlineEmotionPrompt: e.target.value })}
+                                                            placeholder={DEFAULT_TTS_EMOTION_PROMPT}
+                                                            rows={8}
+                                                            className="w-full text-xs p-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-100 font-mono resize-y"
+                                                        />
+                                                        <span className="menu-desc text-xs text-gray-400">
+                                                            提示词会自动注入到包含 {"{{ttsEmotionInstruction}}"} 宏的预设位置；关闭开关时宏自动解析为空。
+                                                        </span>
+                                                    </div>
+                                                )}
                                                 <div className="flex flex-col gap-1">
                                                     <label className="menu-desc ml-1">语音模型 (TTS Model)</label>
                                                     <div className="flex flex-col gap-2">
